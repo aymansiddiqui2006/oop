@@ -1,0 +1,199 @@
+IPAddress shieldIP,subnetMask,gatewayIP;
+uint8_t rssi;
+uint8_t networkId;
+byte macAddr[6]; //mac address is 6 bytes
+byte encryptionType;
+
+char ssid[]="govind";//my cell phone
+//char ssid[]="Redmi";//my cell phone
+/*char ssid[]="octanauts";
+char password[]="kjhk";*/
+
+WiFiClient wclient;
+
+//byte server[] = { 198, 41, 30, 241 }; //  Public MQTT Brokers: http://mqtt.org/wiki/doku.php/public_brokers
+//char server [] = "mqtt.eclipse.org";
+char server [] = "broker.hivemq.com";
+//char server [] = "test.mosquitto.org";
+PubSubClient client(server, 1883, callback , wclient);
+
+char* jsonPayload;
+aJsonStream serial_stream(&Serial);
+
+void setup() {
+  // put your setup code here, to run once:
+    Serial.begin(115200);
+    Serial.print("Connecting to WiFi..");
+   while(WiFi.begin(ssid)!=WL_CONNECTED) //for cell phone
+    //while(WiFi.begin(ssid,password)!=WL_CONNECTED)
+       {
+        Serial.print(".");
+        delay(1); //delay in ms
+       }
+    Serial.println("");
+    Serial.println("Wifi connected , Fetching WiFi sheild's IP Address:");
+    while(WiFi.localIP()==INADDR_NONE)
+    {
+        Serial.print(".");
+        delay(1);
+    }
+    shieldIP = WiFi.localIP();
+    Serial.println(shieldIP);
+
+    Serial.print("Acess point name :");
+    Serial.println(ssid);
+
+    Serial.print("Signal strength: ");
+    rssi=WiFi.RSSI();
+    Serial.println(rssi);  //RSSI-Received Signal Strength Indication
+
+    uint8_t networkId = WiFi.scanNetworks();
+    Serial.print("Number of acess points in range:");
+    Serial.println(networkId);
+    for(int i=1;i<=networkId;i++)
+     {
+       Serial.print("Name of Access Points and encryption type:");
+       Serial.print(WiFi.SSID(i));
+       Serial.print(",");
+       encryptionType = WiFi.encryptionType(i);
+       Serial.println(encryptionType,HEX);
+     }
+
+       subnetMask = WiFi.subnetMask();
+       Serial.print("Subnet Mask:");
+       Serial.println(subnetMask);
+
+       gatewayIP = WiFi.gatewayIP();
+       Serial.print("Gateway IP adress:");
+       Serial.println(gatewayIP);
+
+       WiFi.macAddress(macAddr);
+       Serial.print("Mac Address of sheild:");
+       for(int i=0;i<6;i++)
+       {
+             Serial.print(macAddr[i],HEX);
+             if(i<=4)
+                 Serial.print(':');
+             else
+                 Serial.println();
+         }
+       GPIO_setAsOutputPin(GPIO_PORT_P1,GPIO_PIN0);
+      GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2);
+      GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P4,GPIO_PIN7,GPIO_TERTIARY_MODULE_FUNCTION);
+      ADC14_initModule(ADC_CLOCKSOURCE_MCLK, ADC_PREDIVIDER_1, ADC_PREDIVIDER_1, ADC_NOROUTE);
+      ADC14_configureSingleSampleMode(ADC_MEM6, true);
+      ADC14_configureConversionMemory(ADC_MEM6, ADC_VREFPOS_AVCC_VREFNEG_VSS, ADC_INPUT_A6, false);
+      ADC14_setSampleHoldTime(ADC_PULSE_WIDTH_32, ADC_PULSE_WIDTH_4);
+      ADC14_setResolution(ADC_12BIT);
+      ADC14_enableSampleTimer(ADC_AUTOMATIC_ITERATION);
+      ADC14_enableModule();
+      ADC14_enableConversion();
+      ADC14_toggleConversionTrigger();
+
+
+}
+
+void loop()
+{
+    if(!client.connected())
+       {
+           Serial.println("Disconnected:Reconnecting..");
+           if(!client.connect("Msp432"))
+           {
+               Serial.println("connection failed");
+           }
+           else
+           {
+               Serial.println("Connection success");
+               if(client.subscribe("TurnOnOffLED1"))
+               {
+               Serial.println("Subscription sucessful");
+               }
+           }
+
+       }
+
+    int result,regressedData1;
+       float regressedData;
+
+        while(!ADC14_isBusy());
+        result=ADC14_getResult(ADC_MEM6);
+                // P2OUT=result>>8;
+        ADC14_toggleConversionTrigger();
+        //regressedData = ((result*0.866848575)-2.12705)/1000;
+        regressedData = ((result*0.853015741)+4.9932982)/1000;
+        Serial.println(regressedData);
+        //regressedData1 = ((result*0.866848575)-2.12705);
+        regressedData1 = ((result*0.853015741)+4.9932982);
+        P2->OUT = result>>8;
+
+            // convert into to char array
+        String str = (String)regressedData1;
+        int str_len = str.length() + 2;  // Length (with two extra characters one for decimal point and one for the null terminator)
+        // Serial.print("length of string :");
+        //Serial.println(str_len);
+        char char_array[str_len];  // Prepare the character array (the buffer)
+        str.toCharArray(char_array, str_len);  // Copy it over
+        char pot_reading[str_len];
+
+        if(regressedData<1)
+        {
+          pot_reading[0]='0';
+          pot_reading[1]='.';
+          for(int i=2;i<=str_len;i++)
+           {
+             pot_reading[i]=char_array[i-2];
+           }
+
+         }
+         else
+         {
+           pot_reading[0]=char_array[0];
+           pot_reading[1]='.';
+           for(int i=2;i<=str_len;i++)
+            {
+              pot_reading[i]=char_array[i-1];
+            }
+
+          }
+
+
+    aJsonObject *root=aJson.createObject();
+    aJsonObject *d=aJson.createObject();
+    aJson.addItemToObject(root,"d",d);
+    aJson.addStringToObject(d,"IbmCloudPot","Cat");
+  //  aJson.addNumberToObject(d,"potValue",12);
+     aJson.addStringToObject(d,"potValue",pot_reading);
+    jsonPayload=aJson.print(root)+'\0';
+
+    aJson.deleteItem(d);
+    aJson.deleteItem(root);
+     // publish data to MQTT broker
+    client.publish("sensorPot", jsonPayload);
+
+     client.poll();
+     delay(1000);
+
+}
+
+void callback(char* inTopic, byte* payload, unsigned int length)
+{
+ Serial.print("Message arrived on topic:");
+ Serial.print(inTopic);
+ Serial.print(". Message: ");
+String arrivedMessage;
+
+ for(int i=0;i<length;i++){
+     Serial.print((char)(payload[i]));
+     arrivedMessage+=(char)payload[i];
+ }
+ //Serial.write(payload,length);
+ Serial.println();
+ if(arrivedMessage=="LED1ON")
+     GPIO_setOutputHighOnPin(GPIO_PORT_P1,GPIO_PIN0);
+ else
+     if(arrivedMessage=="LED1OFF")
+          GPIO_setOutputLowOnPin(GPIO_PORT_P1,GPIO_PIN0);
+
+
+}

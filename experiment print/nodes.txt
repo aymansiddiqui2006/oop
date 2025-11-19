@@ -1,0 +1,437 @@
+[
+    {
+        "id": "dcab5c69057e170c",
+        "type": "tab",
+        "label": "FinalDash",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "6df8f032.56e6b",
+        "type": "mqtt in",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "topic": "sensorPot",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "5d6f5f2e.e6418",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "571e540b.f97b6c",
+                "a4589336.704ae"
+            ]
+        ]
+    },
+    {
+        "id": "812d2289.d8ece",
+        "type": "mqtt out",
+        "z": "dcab5c69057e170c",
+        "name": "MSP432LaunchPad",
+        "topic": "TurnOnOffLED1",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5d6f5f2e.e6418",
+        "x": 389,
+        "y": 330,
+        "wires": []
+    },
+    {
+        "id": "571e540b.f97b6c",
+        "type": "change",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload[0].d.IbmCloudPot\t",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 460,
+        "y": 80,
+        "wires": [
+            [
+                "c8cfc8fe.24bb58",
+                "56d70ba7eb4401d1"
+            ]
+        ]
+    },
+    {
+        "id": "a4589336.704ae",
+        "type": "change",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload[0].d.potValue\t",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 440,
+        "y": 180,
+        "wires": [
+            [
+                "d9327ec0.8e71e",
+                "e608989e.27cb48",
+                "1dd7a132.eb326f",
+                "6b5251ee.96aa1"
+            ]
+        ]
+    },
+    {
+        "id": "d9327ec0.8e71e",
+        "type": "ui_gauge",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "group": "b735915c.eebed",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Gauge",
+        "label": "Volts",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "3.3",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 810,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "e608989e.27cb48",
+        "type": "debug",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "false",
+        "x": 790,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "1dd7a132.eb326f",
+        "type": "ui_chart",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "group": "6b3bcec.5e3073",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "label": "Chart",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "3.3",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "x": 810,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2f20bcd9.76df74",
+        "type": "template",
+        "z": "dcab5c69057e170c",
+        "name": "Notification",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "Alert {{payload}}Volts!!!Turn the Pot...",
+        "output": "str",
+        "x": 930,
+        "y": 200,
+        "wires": [
+            [
+                "350819b2.b974e6",
+                "4e6ef88.bbd9b08"
+            ]
+        ]
+    },
+    {
+        "id": "6b5251ee.96aa1",
+        "type": "switch",
+        "z": "dcab5c69057e170c",
+        "name": "High Volts",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "3",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 740,
+        "y": 200,
+        "wires": [
+            [
+                "2f20bcd9.76df74"
+            ]
+        ]
+    },
+    {
+        "id": "350819b2.b974e6",
+        "type": "ui_toast",
+        "z": "dcab5c69057e170c",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "topic": "",
+        "name": "",
+        "x": 1110,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "c8cfc8fe.24bb58",
+        "type": "ui_text",
+        "z": "dcab5c69057e170c",
+        "group": "80621295.c22b3",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 640,
+        "y": 84.28571428571428,
+        "wires": []
+    },
+    {
+        "id": "4e6ef88.bbd9b08",
+        "type": "delay",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "outputs": 1,
+        "x": 1110,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d62fc8bc.4e3bc8",
+        "type": "ui_button",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "group": "4d9312d7.3ec25c",
+        "order": 0,
+        "width": "3",
+        "height": "1",
+        "passthru": true,
+        "label": "Turn On LED",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "LED1ON",
+        "payloadType": "str",
+        "topic": "TurnOnOffLED1",
+        "topicType": "str",
+        "x": 148,
+        "y": 329,
+        "wires": [
+            [
+                "812d2289.d8ece"
+            ]
+        ]
+    },
+    {
+        "id": "afb9a55d.169a28",
+        "type": "ui_button",
+        "z": "dcab5c69057e170c",
+        "name": "",
+        "group": "4d9312d7.3ec25c",
+        "order": 0,
+        "width": "3",
+        "height": "1",
+        "passthru": false,
+        "label": "Turn Off LED",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "LED1OFF",
+        "payloadType": "str",
+        "topic": "TurnOnOffLED1",
+        "topicType": "str",
+        "x": 167.1428571428571,
+        "y": 391.1428571428571,
+        "wires": [
+            [
+                "812d2289.d8ece"
+            ]
+        ]
+    },
+    {
+        "id": "56d70ba7eb4401d1",
+        "type": "debug",
+        "z": "dcab5c69057e170c",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "5d6f5f2e.e6418",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "b735915c.eebed",
+        "type": "ui_group",
+        "name": "Potentiometer Voltage Guage",
+        "tab": "8950df1f.227fd",
+        "order": 2,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "6b3bcec.5e3073",
+        "type": "ui_group",
+        "name": "Potentiometer Voltage Chart",
+        "tab": "8950df1f.227fd",
+        "order": 3,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "80621295.c22b3",
+        "type": "ui_group",
+        "name": "Information",
+        "tab": "8950df1f.227fd",
+        "order": 1,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "4d9312d7.3ec25c",
+        "type": "ui_group",
+        "name": "Switch ON/OFF RED LED on MSP432",
+        "tab": "8950df1f.227fd",
+        "order": 5,
+        "disp": true,
+        "width": "5"
+    },
+    {
+        "id": "8950df1f.227fd",
+        "type": "ui_tab",
+        "name": "My IOT Dashboard",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "8391b8f3a6b27efe",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6"
+        }
+    }
+]
