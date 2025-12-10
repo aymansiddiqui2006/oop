@@ -1,0 +1,42 @@
+#include<iostream>
+using namespace std;
+
+class flight{
+    int flight_num;
+    string des;
+    float dis;
+    float  feul;
+    int cal(int d){
+        dis=d;
+        if(dis<=1000){
+            return 500;
+        }
+        if(dis>1000 && dis<=2000){
+            return 1100;
+        }
+        if(dis>2000){
+            return 2200;
+        }
+    }
+
+    public:
+    void feedinfo(int f,string de,float di){
+        flight_num=f;
+        des=de;
+        dis=di;
+        feul=cal(dis);
+
+    }
+
+    void display(){
+        cout<<"the feul is : "<<feul;
+    }
+
+};
+int main (){
+
+    flight f1;
+    f1.feedinfo(2345,"mumbai",250);
+    f1.display();
+  return 0;
+}
