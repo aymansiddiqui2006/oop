@@ -29,7 +29,10 @@ class flight{
     }
 
     void display(){
-        cout<<"the feul is : "<<feul;
+        cout<<"\n\n\n flight number is :"<<flight_num;
+        cout<<"\n destination number is :"<<des;
+        cout<<"\n distance number is :"<<dis;
+        cout<<"\n the feul is : "<<feul;
     }
 
 };
@@ -37,6 +40,13 @@ int main (){
 
     flight f1;
     f1.feedinfo(2345,"mumbai",250);
+    f1.display();
+
+    f1.feedinfo(2345,"delhi",25000);
+    f1.display();
+
+
+    f1.feedinfo(2345,"bihar",1150);
     f1.display();
   return 0;
 }
